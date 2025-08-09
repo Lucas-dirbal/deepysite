@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Equipamentos - Laboratório</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .equipment-card {
+            transition: all 0.3s ease;
+        }
+        .equipment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .login-container {
+            background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="fixed inset-0 flex items-center justify-center z-50 login-container">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md mx-4">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">Controle de Equipamentos</h1>
+                <p class="text-gray-600 mt-2">Acesse o sistema do laboratório</p>
+            </div>
+            
+            <div class="flex justify-center mb-6">
+                <div class="inline-flex rounded-md shadow-sm" role="group">
+                    <button id="studentBtn" type="button" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-l-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700">
+                        <i class="fas fa-user-graduate mr-2"></i>Aluno
+                    </button>
+                    <button id="staffBtn" type="button" class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border-t border-b border-r border-gray-200 rounded-r-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700">
+                        <i class="fas fa-chalkboard-teacher mr-2"></i>Equipe Pedagógica
+                    </button>
+                </div>
+            </div>
+            
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Senha</label>
+                    <input type="password" id="password" name="password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Entrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App (hidden initially) -->
+    <div id="app" class="hidden">
+        <!-- Header -->
+        <header class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+                <h1 class="text-xl font-bold text-gray-900">
+                    <i class="fas fa-flask mr-2 text-blue-600"></i> Controle de Equipamentos
+                </h1>
+                <div class="flex items-center space-x-4">
+                    <div id="userRoleBadge" class="px-3 py-1 rounded-full text-xs font-medium"></div>
+                    <button id="logoutBtn" class="text-gray-600 hover:text-blue-600">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+            <!-- Filter Section -->
+            <div class="bg-white p-4 rounded-lg shadow mb-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+                    <div class="flex-1">
+                        <label for="search" class="sr-only">Pesquisar</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" id="search" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Pesquisar equipamentos...">
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center">
+                            <label for="availability" class="mr-2 text-sm font-medium text-gray-700">Disponibilidade:</label>
+                            <select id="availability" class="mt-1 block pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                <option value="all">Todos</option>
+                                <option value="available">Disponíveis</option>
+                                <option value="unavailable">Indisponíveis</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Equipment Grid -->
+            <div id="equipmentContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Equipment cards will be loaded here -->
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Sample equipment data
+        const equipmentData = [
+            {
+                id: 1,
+                name: "Microscópio Binocular",
+                description: "Microscópio binocular com aumento de 40x a 1000x, ideal para observação de células e microorganismos.",
+                image: "https://images.unsplash.com/photo-1575505586569-646b2ca898fc?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+                available: true,
+                lastMaintenance: "2023-05-15"
+            },
+            {
+                id: 2,
+                name: "Centrífuga",
+                description: "Centrífuga de bancada com capacidade para 12 tubos de 15ml, velocidade máxima de 4000 rpm.",
+                image: "https://images.unsplash.com/photo-1581093450022-4b1a0718d0e4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+                available: false,
+                lastMaintenance: "2023-04-20"
+            },
+            {
+                id: 3,
+                name: "Balança Analítica",
+                description: "Balança analítica digital com precisão de 0.0001g, capacidade máxima de 200g.",
+                image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+                available: true,
+                lastMaintenance: "2023-06-10"
+            },
+            {
+                id: 4,
+                name: "pHmetro",
+                description: "Medidor de pH digital com compensação automática de temperatura e eletrodo de reposição.",
+                image: "https://images.unsplash.com/photo-1581093057306-c4110b1e38c8?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+                available: true,
+                lastMaintenance: "2023-05-30"
+            },
+            {
+                id: 5,
+                name: "Autoclave",
+                description: "Autoclave vertical com capacidade de 25 litros, timer digital e sistema de segurança.",
+                image: "https://images.unsplash.com/photo-1581093057927-02a79481d7a8?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+                available: false,
+                lastMaintenance: "2023-03-15"
+            },
+            {
+                id: 6,
+                name: "Banho Maria",
+                description: "Banho Maria digital com controle de temperatura de ambiente até 100°C e capacidade de 6 litros.",
+                image: "https://images.unsplash.com/photo-1581094271900-2f0d0a7fba3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
+                available: true,
+                lastMaintenance: "2023-06-05"
+            }
+        ];
+
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const app = document.getElementById('app');
+        const loginForm = document.getElementById('loginForm');
+        const studentBtn = document.getElementById('studentBtn');
+        const staffBtn = document.getElementById('staffBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userRoleBadge = document.getElementById('userRoleBadge');
+        const searchInput = document.getElementById('search');
+        const availabilityFilter = document.getElementById('availability');
+        const equipmentContainer = document.getElementById('equipmentContainer');
+
+        // App State
+        let currentUser = null;
+        let currentRole = null;
+
+        // Event Listeners
+        studentBtn.addEventListener('click', () => {
+            studentBtn.classList.add('bg-blue-100', 'text-blue-700');
+            staffBtn.classList.remove('bg-blue-100', 'text-blue-700');
+            currentRole = 'student';
+        });
+
+        staffBtn.addEventListener('click', () => {
+            staffBtn.classList.add('bg-blue-100', 'text-blue-700');
+            studentBtn.classList.remove('bg-blue-100', 'text-blue-700');
+            currentRole = 'staff';
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // Simple validation
+            if (!email || !password) {
+                alert('Por favor, preencha todos os campos');
+                return;
+            }
+            
+            if (!currentRole) {
+                alert('Por favor, selecione um tipo de usuário');
+                return;
+            }
+            
+            // Mock login - in a real app, this would be an API call
+            currentUser = {
+                email,
+                role: currentRole
+            };
+            
+            // Update UI
+            loginScreen.classList.add('hidden');
+            app.classList.remove('hidden');
+            
+            // Set role badge
+            if (currentRole === 'student') {
+                userRoleBadge.textContent = 'Aluno';
+                userRoleBadge.classList.add('bg-green-100', 'text-green-800');
+            } else {
+                userRoleBadge.textContent = 'Equipe Pedagógica';
+                userRoleBadge.classList.add('bg-purple-100', 'text-purple-800');
+            }
+            
+            // Load equipment
+            renderEquipment(equipmentData);
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            currentUser = null;
+            currentRole = null;
+            app.classList.add('hidden');
+            loginScreen.classList.remove('hidden');
+            loginForm.reset();
+            studentBtn.classList.remove('bg-blue-100', 'text-blue-700');
+            staffBtn.classList.remove('bg-blue-100', 'text-blue-700');
+        });
+
+        searchInput.addEventListener('input', filterEquipment);
+        availabilityFilter.addEventListener('change', filterEquipment);
+
+        // Functions
+        function renderEquipment(equipment) {
+            equipmentContainer.innerHTML = '';
+            
+            equipment.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'equipment-card bg-white rounded-lg shadow overflow-hidden fade-in';
+                
+                card.innerHTML = `
+                    <div class="h-48 overflow-hidden">
+                        <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-lg font-semibold text-gray-900">${item.name}</h3>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                ${item.available ? 'Disponível' : 'Indisponível'}
+                            </span>
+                        </div>
+                        ${currentUser ? `
+                            <p class="mt-2 text-sm text-gray-600">${item.description}</p>
+                            <div class="mt-3 text-xs text-gray-500">
+                                <i class="fas fa-tools mr-1"></i> Última manutenção: ${formatDate(item.lastMaintenance)}
+                            </div>
+                        ` : `
+                            <p class="mt-2 text-sm text-gray-600">Faça login para ver a descrição completa</p>
+                        `}
+                        ${(currentUser && currentUser.role === 'staff') ? `
+                            <div class="mt-4 flex space-x-2">
+                                <button class="edit-btn inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" data-id="${item.id}">
+                                    <i class="fas fa-edit mr-1"></i> Editar
+                                </button>
+                                <button class="maintenance-btn inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" data-id="${item.id}">
+                                    <i class="fas fa-wrench mr-1"></i> Manutenção
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                equipmentContainer.appendChild(card);
+            });
+        }
+
+        function filterEquipment() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const availability = availabilityFilter.value;
+            
+            const filtered = equipmentData.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(searchTerm);
+                let matchesAvailability = true;
+                
+                if (availability === 'available') {
+                    matchesAvailability = item.available === true;
+                } else if (availability === 'unavailable') {
+                    matchesAvailability = item.available === false;
+                }
+                
+                return matchesSearch && matchesAvailability;
+            });
+            
+            renderEquipment(filtered);
+        }
+
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('pt-BR', options);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Default to student role
+            studentBtn.click();
+        });
+    </script>
+</body>
+</html>
